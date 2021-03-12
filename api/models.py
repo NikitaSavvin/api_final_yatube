@@ -8,7 +8,7 @@ class Group(models.Model):
     title = models.CharField(
         max_length=200,
     )
-    
+
     def __str__(self):
         return self.title
 
@@ -19,7 +19,9 @@ class Post(models.Model):
         "Дата публикации", auto_now_add=True
     )
     author = models.ForeignKey(
-        User, blank=True, null=True, on_delete=models.CASCADE, related_name="posts"
+        User, blank=True, null=True,
+        on_delete=models.CASCADE,
+        related_name="posts"
     )
     group = models.ForeignKey(
         Group, blank=True, null=True,
@@ -45,7 +47,6 @@ class Comment(models.Model):
     )
 
 
-
 class Follow(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
@@ -60,7 +61,3 @@ class Follow(models.Model):
 
     def __str__(self):
         return f'{self.user} {self.following}'
-        
-
-class Auth(models.Model):
-    pass
