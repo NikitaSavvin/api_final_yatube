@@ -1,7 +1,8 @@
-from rest_framework import filters, mixins, viewsets
+from rest_framework import filters, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
+from .include import IncludeViewSet
 from .models import Group, Post
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
@@ -26,7 +27,6 @@ class CommentViewSet(viewsets.ModelViewSet):
         data = {
             'author': self.request.user,
             'post': get_object_or_404(Post, pk=self.kwargs.get('post_id')),
-            'created': serializer.fields['created']
         }
         serializer.save(**data)
 
@@ -36,25 +36,16 @@ class CommentViewSet(viewsets.ModelViewSet):
         return all_comments_of_post
 
 
-class GroupViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
-):
+class GroupViewSet(IncludeViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
 
 
-class FollowViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet
-):
+class FollowViewSet(IncludeViewSet):
     serializer_class = FollowSerializer
     filter_backends = [filters.SearchFilter]
     search_fields = ['=user__username', '=following__username']
-    http_method_names = ('get', 'post')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)

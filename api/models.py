@@ -21,7 +21,7 @@ class Post(models.Model):
     author = models.ForeignKey(
         User, blank=True, null=True,
         on_delete=models.CASCADE,
-        related_name="posts"
+        related_name='posts'
     )
     group = models.ForeignKey(
         Group, blank=True, null=True,
@@ -36,14 +36,14 @@ class Post(models.Model):
 
 class Comment(models.Model):
     author = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="comments"
+        User, on_delete=models.CASCADE, related_name='comments'
     )
     post = models.ForeignKey(
-        Post, on_delete=models.CASCADE, related_name="comments"
+        Post, on_delete=models.CASCADE, related_name='comments'
     )
     text = models.TextField()
     created = models.DateTimeField(
-        "Дата добавления", auto_now_add=True, db_index=True
+        'Дата добавления', auto_now_add=True, db_index=True
     )
 
 
@@ -51,20 +51,23 @@ class Follow(models.Model):
     user = models.ForeignKey(
         User, on_delete=models.CASCADE,
         null=True, blank=True,
-        related_name="follower"
+        related_name='follower'
     )
     following = models.ForeignKey(
         User, on_delete=models.SET_NULL,
         null=True, blank=True,
-        related_name="following"
+        related_name='following'
     )
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'], name='unique_object'
+                fields=['user', 'author'],
+                name='unique_object',
+                condition=models.Q(user=models.F('following')),
+
             )
         ]
 
     def __str__(self):
-        return f'{self.user} {self.following}'
+        return f'{self.following} подписан на {self.user}'
