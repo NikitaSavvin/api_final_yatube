@@ -62,10 +62,15 @@ class Follow(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user', 'author'],
-                name='unique_object',
+                fields=['user'],
+                name='unique_object_user',
+            )
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['following'],
+                name='unique_object_following',
                 condition=models.Q(user=models.F('following')),
-
             )
         ]
 
