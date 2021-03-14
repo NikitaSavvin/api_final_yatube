@@ -1,9 +1,8 @@
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import filters, mixins, viewsets
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from .models import Follow, Group, Post, User
+from .models import Group, Post
 from .permissions import IsAuthorOrReadOnly
 from .serializers import (
     CommentSerializer, FollowSerializer, GroupSerializer, PostSerializer)
@@ -13,7 +12,6 @@ class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
     permission_classes = [IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-    filter_backends = [DjangoFilterBackend]
     filterset_fields = ['group', ]
 
     def perform_create(self, serializer, *args, **kwargs):
@@ -28,33 +26,40 @@ class CommentViewSet(viewsets.ModelViewSet):
         data = {
             'author': self.request.user,
             'post': get_object_or_404(Post, pk=self.kwargs.get('post_id')),
-            'created': self.kwargs.get('created', '')
+            'created': serializer.fields['created']
         }
         serializer.save(**data)
 
     def get_queryset(self):
-        post_id = self.kwargs.get('post_id', '')
-        post = get_object_or_404(Post, pk=post_id)
+        post = get_object_or_404(Post, pk=self.kwargs.get('post_id'))
         all_comments_of_post = post.comments.all()
         return all_comments_of_post
 
 
-class GroupViewSet(viewsets.ModelViewSet):
+class GroupViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]
-    http_method_names = ('get', 'post')
 
 
-class FollowViewSet(viewsets.ModelViewSet):
+class FollowViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet
+):
     serializer_class = FollowSerializer
     filter_backends = [filters.SearchFilter]
-    search_fields = ['user__username', 'following__username']
+    search_fields = ['=user__username', '=following__username']
     http_method_names = ('get', 'post')
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
     def get_queryset(self):
-        user = get_object_or_404(User, username=self.request.user)
-        return Follow.objects.filter(following=user)
+        user = self.request.user
+        queryset = user.following.all()
+        return queryset

@@ -16,7 +16,7 @@ class Group(models.Model):
 class Post(models.Model):
     text = models.TextField()
     pub_date = models.DateTimeField(
-        "Дата публикации", auto_now_add=True
+        'Дата публикации', auto_now_add=True
     )
     author = models.ForeignKey(
         User, blank=True, null=True,
@@ -58,6 +58,13 @@ class Follow(models.Model):
         null=True, blank=True,
         related_name="following"
     )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'], name='unique_object'
+            )
+        ]
 
     def __str__(self):
         return f'{self.user} {self.following}'
