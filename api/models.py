@@ -62,16 +62,13 @@ class Follow(models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=['user'],
+                fields=['user', 'following'],
                 name='unique_object_user',
-            )
-        ]
-        constraints = [
-            models.UniqueConstraint(
-                fields=['following'],
+            ),
+            models.CheckConstraint(
                 name='unique_object_following',
-                condition=models.Q(user=models.F('following')),
-            )
+                check=~models.Q(user=models.F('following')),
+            ),
         ]
 
     def __str__(self):
